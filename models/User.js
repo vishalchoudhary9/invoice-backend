@@ -20,8 +20,13 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["owner", "user"],
+      enum: ["owner", "user", "admin"],
       default: "owner",
+    },
+    subscriptionPlan: {
+      type: String,
+      enum: ["free", "premium"],
+      default: "free",
     },
   },
   {

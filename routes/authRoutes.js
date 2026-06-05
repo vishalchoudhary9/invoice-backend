@@ -6,8 +6,8 @@ import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+const generateToken = (userId, role = "owner") => {
+  return jwt.sign({ id: userId, role }, process.env.JWT_SECRET, {
     expiresIn: "7d",
   });
 };
@@ -39,7 +39,7 @@ router.post("/signup", async (req, res) => {
       role: role || "owner",
     });
 
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, user.role);
 
     res.status(201).json({
       message: "Signup successful",
@@ -49,6 +49,7 @@ router.post("/signup", async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        subscriptionPlan: user.subscriptionPlan,
       },
     });
   } catch (error) {
@@ -69,6 +70,27 @@ router.post("/login", async (req, res) => {
       });
     }
 
+    // Check for admin login
+    if (
+      process.env.ADMIN_EMAIL &&
+      email === process.env.ADMIN_EMAIL &&
+      password === process.env.ADMIN_PASSWORD
+    ) {
+      const token = generateToken("admin", "admin");
+      const response= res.json({
+        message: "Admin login successful",
+        token,
+        user: {
+          id: "admin",
+          name: "Administrator",
+          email: process.env.ADMIN_EMAIL,
+          role: "admin",
+        },
+      });
+      console.log("Admin login response:", response);
+      return response;
+    }
+
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -85,7 +107,7 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, user.role);
 
     res.json({
       message: "Login successful",
@@ -95,6 +117,7 @@ router.post("/login", async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        subscriptionPlan: user.subscriptionPlan,
       },
     });
   } catch (error) {

@@ -10,7 +10,7 @@ const productSchema = new mongoose.Schema(
     productName: {
       type: String,
       required: true,
-      trim: true,
+      trim: true, 
     },
     hsnSac: {
       type: String,

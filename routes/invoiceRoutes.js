@@ -111,6 +111,16 @@ router.post("/", authMiddleware, async (req, res) => {
       });
     }
 
+    // Check free limit
+    if (req.user.subscriptionPlan === "free") {
+      const invoiceCount = await Invoice.countDocuments({ owner: req.user._id });
+      if (invoiceCount >= 5) {
+        return res.status(403).json({
+          message: "You have reached the free limit of 5 invoices. Please contact the developer to upgrade to premium.",
+        });
+      }
+    }
+
     const {
       calculatedItems,
       taxableAmount,
