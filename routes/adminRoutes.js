@@ -24,15 +24,20 @@ router.put("/users/:id/plan", async (req, res) => {
   try {
     const { subscriptionPlan } = req.body;
     
-    if (!["free", "premium"].includes(subscriptionPlan)) {
+    if (!["free", "premium", "blocked"].includes(subscriptionPlan)) {
       return res.status(400).json({
         message: "Invalid subscription plan",
       });
     }
 
+    const updateData = { subscriptionPlan };
+    if (subscriptionPlan === "free") {
+      updateData.totalInvoicesGenerated = 0;
+    }
+
     const user = await User.findByIdAndUpdate(
       req.params.id,
-      { subscriptionPlan },
+      updateData,
       { new: true }
     ).select("-password");
 

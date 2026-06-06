@@ -25,8 +25,12 @@ const userSchema = new mongoose.Schema(
     },
     subscriptionPlan: {
       type: String,
-      enum: ["free", "premium"],
+      enum: ["free", "premium", "blocked"],
       default: "free",
+    },
+    totalInvoicesGenerated: {
+      type: Number,
+      default: 0,
     },
   },
   {

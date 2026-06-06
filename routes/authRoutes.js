@@ -50,6 +50,7 @@ router.post("/signup", async (req, res) => {
         email: user.email,
         role: user.role,
         subscriptionPlan: user.subscriptionPlan,
+        totalInvoicesGenerated: user.totalInvoicesGenerated,
       },
     });
   } catch (error) {
@@ -118,6 +119,7 @@ router.post("/login", async (req, res) => {
         email: user.email,
         role: user.role,
         subscriptionPlan: user.subscriptionPlan,
+        totalInvoicesGenerated: user.totalInvoicesGenerated,
       },
     });
   } catch (error) {

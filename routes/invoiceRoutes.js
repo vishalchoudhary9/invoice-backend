@@ -111,12 +111,20 @@ router.post("/", authMiddleware, async (req, res) => {
       });
     }
 
+    // Check if user is blocked
+    if (req.user.subscriptionPlan === "blocked") {
+      return res.status(403).json({
+        message: "Your account is blocked because you have reached the 5-invoice generation limit. Please contact the developer to unlock or upgrade.",
+      });
+    }
+
     // Check free limit
     if (req.user.subscriptionPlan === "free") {
-      const invoiceCount = await Invoice.countDocuments({ owner: req.user._id });
-      if (invoiceCount >= 5) {
+      if (req.user.totalInvoicesGenerated >= 5) {
+        req.user.subscriptionPlan = "blocked";
+        await req.user.save();
         return res.status(403).json({
-          message: "You have reached the free limit of 5 invoices. Please contact the developer to upgrade to premium.",
+          message: "Your account is blocked because you have reached the 5-invoice generation limit. Please contact the developer to unlock or upgrade.",
         });
       }
     }
@@ -147,9 +155,25 @@ router.post("/", authMiddleware, async (req, res) => {
       grandTotal,
     });
 
+    if (req.user.subscriptionPlan === "free") {
+      req.user.totalInvoicesGenerated = (req.user.totalInvoicesGenerated || 0) + 1;
+      if (req.user.totalInvoicesGenerated >= 5) {
+        req.user.subscriptionPlan = "blocked";
+      }
+      await req.user.save();
+    }
+
     res.status(201).json({
       message: "Invoice created successfully",
       invoice,
+      user: {
+        id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        role: req.user.role,
+        subscriptionPlan: req.user.subscriptionPlan,
+        totalInvoicesGenerated: req.user.totalInvoicesGenerated,
+      },
     });
   } catch (error) {
     res.status(500).json({
